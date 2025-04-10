@@ -14,8 +14,19 @@
   "contributes": {
     "commands": [
       {
-        "command": "openingh.openInGitHub",
-        "title": "Open In GitHub"
+        "command": "openingh.openInGitHubFile",
+        "title": "File",
+        "category": "OpenInGitHub"
+      },
+      {
+        "command": "openingh.openInGitHubLines",
+        "title": "Lines",
+        "category": "OpenInGitHub"
+      },
+      {
+        "command": "openingh.openInGitHubRepo",
+        "title": "Repo",
+        "category": "OpenInGitHub"
       }
     ]
   },

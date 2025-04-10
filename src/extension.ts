@@ -12,57 +12,141 @@ import {
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
-  // Use the console to output diagnostic information (console.log) and errors (console.error)
-  // This line of code will only be executed once when your extension is activated
-  console.log('Congratulations, your extension "openingh" is now active!');
-
   // The command has been defined in the package.json file
   // Now provide the implementation of the command with registerCommand
   // The commandId parameter must match the command field in package.json
   const disposable = vscode.commands.registerCommand(
-    "openingh.openInGitHub",
+    "openingh.openInGitHubFile",
     () => {
-      // The code you place here will be executed every time your command is executed
-      // Display a message box to the user
-      vscode.window.showInformationMessage("Hello World from openingh!");
-
       let editor = vscode.window.activeTextEditor;
       if (!editor) {
+        vscode.window.showErrorMessage("No active editor found.");
         return;
       }
-      let start = editor.selection.start.line;
-      let end = editor.selection.end.line;
 
-      let { branch, remote, remoteUrl } = getRepoForFile(editor.document.uri);
-      // TODO: make sure the remote exists
-      if (branch && remoteUrl) {
-        let repoInfo = getRepoInfoFromRemoteUrl(remoteUrl);
-        if (!repoInfo) {
-          return;
-        }
-
-        let relativePath = getRelativePathToRepoRoot(editor.document.uri);
-        if (!relativePath) {
-          vscode.window.showErrorMessage(
-            "Could not find the relative path to the repository root."
-          );
-          return;
-        }
-
-        let githubUrl = getGitHubUrl(
-          repoInfo.author,
-          repoInfo.repository,
-          branch,
-          relativePath,
-          start,
-          end
-        );
-        openBrowser(githubUrl);
+      let { branch, remoteUrl, commit } = getRepoForFile(editor.document.uri);
+      if (!branch && !commit) {
+        vscode.window.showErrorMessage("Branch or commit not found.");
+        return;
       }
+      if (!remoteUrl) {
+        vscode.window.showErrorMessage("No remote repository found.");
+        return;
+      }
+
+      let repoInfo = getRepoInfoFromRemoteUrl(remoteUrl);
+      if (!repoInfo) {
+        vscode.window.showErrorMessage(
+          `Repository info could not be parsed from: ${remoteUrl}.`
+        );
+        return;
+      }
+
+      let relativePath = getRelativePathToRepoRoot(editor.document.uri);
+      if (!relativePath) {
+        vscode.window.showErrorMessage(
+          "Could not find the relative path to the repository root."
+        );
+        return;
+      }
+
+      let githubUrl = getGitHubUrl(
+        {
+          author: repoInfo.author,
+          repository: repoInfo.repository,
+          branch: (branch || commit) as string,
+        },
+        { fileName: relativePath }
+      );
+      openBrowser(githubUrl);
     }
   );
 
-  context.subscriptions.push(disposable);
+  const disposable3 = vscode.commands.registerCommand(
+    "openingh.openInGitHubLines",
+    () => {
+      let editor = vscode.window.activeTextEditor;
+      if (!editor) {
+        vscode.window.showErrorMessage("No active editor found.");
+        return;
+      }
+
+      let { branch, remoteUrl, commit } = getRepoForFile(editor.document.uri);
+      if (!branch && !commit) {
+        vscode.window.showErrorMessage("Branch or commit not found.");
+        return;
+      }
+      if (!remoteUrl) {
+        vscode.window.showErrorMessage("No remote repository found.");
+        return;
+      }
+      let repoInfo = getRepoInfoFromRemoteUrl(remoteUrl);
+      if (!repoInfo) {
+        vscode.window.showErrorMessage(
+          `Repository info could not be parsed from: ${remoteUrl}.`
+        );
+        return;
+      }
+
+      let relativePath = getRelativePathToRepoRoot(editor.document.uri);
+      if (!relativePath) {
+        vscode.window.showErrorMessage(
+          "Could not find the relative path to the repository root."
+        );
+        return;
+      }
+
+      let start = editor.selection.start.line;
+      let end = editor.selection.end.line;
+      let githubUrl = getGitHubUrl(
+        {
+          author: repoInfo.author,
+          repository: repoInfo.repository,
+          branch: (branch || commit) as string,
+        },
+        {
+          fileName: relativePath,
+          start,
+          end,
+        }
+      );
+      openBrowser(githubUrl);
+    }
+  );
+
+  const disposable2 = vscode.commands.registerCommand(
+    "openingh.openInGitHubRepo",
+    () => {
+      let editor = vscode.window.activeTextEditor;
+      let { branch, remoteUrl, commit } = getRepoForFile(editor?.document.uri);
+      if (!branch && !commit) {
+        vscode.window.showErrorMessage("Branch or commit not found.");
+        return;
+      }
+      if (!remoteUrl) {
+        vscode.window.showErrorMessage("No remote repository found.");
+        return;
+      }
+
+      let repoInfo = getRepoInfoFromRemoteUrl(remoteUrl);
+      if (!repoInfo) {
+        vscode.window.showErrorMessage(
+          `Repository info could not be parsed from: ${remoteUrl}.`
+        );
+        return;
+      }
+
+      let githubUrl = getGitHubUrl({
+        author: repoInfo.author,
+        repository: repoInfo.repository,
+        branch: (branch || commit) as string,
+      });
+
+      openBrowser(githubUrl);
+    }
+  );
+
+  context.subscriptions.push(disposable, disposable2, disposable3);
 }
 
 // This method is called when your extension is deactivated

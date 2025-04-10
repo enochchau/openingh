@@ -1,5 +1,5 @@
 import path from "path";
-import { GitExtension } from "./test/git";
+import { GitExtension } from "./git";
 import * as vscode from "vscode";
 
 export function getRepoInfoFromRemoteUrl(url: string) {
@@ -36,51 +36,90 @@ export function getRepoInfoFromRemoteUrl(url: string) {
   return null;
 }
 
-export function getRepoForFile(fileUri: vscode.Uri): {
+export function getRepoForFile(fileUri?: vscode.Uri): {
   branch: string | undefined;
   remote: string | undefined;
   remoteUrl: string | undefined;
+  commit: string | undefined;
 } {
   let gitExtension = vscode.extensions
     .getExtension<GitExtension>("vscode.git")
     ?.exports.getAPI(1);
 
-  if (!gitExtension) {
-    return { branch: undefined, remote: undefined, remoteUrl: undefined };
-  }
+  if (gitExtension) {
+    if (!fileUri) {
+      const workspaceFolders = vscode.workspace.workspaceFolders;
+      if (workspaceFolders && workspaceFolders.length > 0) {
+        fileUri = workspaceFolders[0].uri;
+      } else {
+        return {
+          branch: undefined,
+          remote: undefined,
+          remoteUrl: undefined,
+          commit: undefined,
+        };
+      }
+    }
+    let repo = gitExtension.getRepository(fileUri);
+    if (repo) {
+      let head = repo.state.HEAD;
 
-  let repo = gitExtension.getRepository(fileUri);
-  if (!repo) {
-    return { branch: undefined, remote: undefined, remoteUrl: undefined };
-  }
-
-  let head = repo.state.HEAD;
-  if (!head) {
-    return { branch: undefined, remote: undefined, remoteUrl: undefined };
-  }
-
-  let remoteUrl: string | undefined;
-  for (const remote of repo.state.remotes) {
-    if (remote.name === head.upstream?.remote) {
-      remoteUrl = remote.fetchUrl || remote.pushUrl;
-      break;
+      if (head) {
+        let remoteUrl: string | undefined;
+        let originUrl: string | undefined;
+        for (const remote of repo.state.remotes) {
+          if (remote.name === head.upstream?.remote) {
+            remoteUrl = remote.fetchUrl || remote.pushUrl;
+            break;
+          }
+          if (remote.name === "origin") {
+            originUrl = remote.fetchUrl || remote.pushUrl;
+          }
+        }
+        return {
+          branch: head.name,
+          remote: head.upstream?.remote,
+          remoteUrl: remoteUrl || originUrl,
+          commit: head.commit,
+        };
+      }
     }
   }
-  return { branch: head.name, remote: head.upstream?.remote, remoteUrl };
+
+  return {
+    branch: undefined,
+    remote: undefined,
+    remoteUrl: undefined,
+    commit: undefined,
+  };
 }
 
 export function getGitHubUrl(
-  author: string,
-  repository: string,
-  branch: string,
-  fileName: string,
-  start: number,
-  end: number
-) {
-  let str = `https://github.com/${author}/${repository}/blob/${branch}/${fileName}#L${start}`;
-  if (start !== end) {
-    str += `-L${end}`;
+  repoInfo: {
+    author: string;
+    repository: string;
+    branch: string;
+  },
+  fileInfo?: {
+    fileName: string;
+    start?: number;
+    end?: number;
   }
+) {
+  const { author, repository, branch } = repoInfo;
+  let str = `https://github.com/${author}/${repository}/blob/${branch}`;
+
+  if (fileInfo) {
+    const { fileName, start, end } = fileInfo;
+    str += `/${fileName}`;
+    if (start) {
+      str += `#L${start}`;
+    }
+    if (start !== end) {
+      str += `-L${end}`;
+    }
+  }
+
   return str;
 }
 

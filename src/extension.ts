@@ -15,7 +15,8 @@ export function activate(context: vscode.ExtensionContext) {
   // The command has been defined in the package.json file
   // Now provide the implementation of the command with registerCommand
   // The commandId parameter must match the command field in package.json
-  const disposable = vscode.commands.registerCommand(
+  
+  const openInGitHubFile = vscode.commands.registerCommand(
     "openingh.openInGitHubFile",
     () => {
       let editor = vscode.window.activeTextEditor;
@@ -62,7 +63,7 @@ export function activate(context: vscode.ExtensionContext) {
     }
   );
 
-  const disposable3 = vscode.commands.registerCommand(
+  const openInGitHubLines = vscode.commands.registerCommand(
     "openingh.openInGitHubLines",
     () => {
       let editor = vscode.window.activeTextEditor;
@@ -114,7 +115,7 @@ export function activate(context: vscode.ExtensionContext) {
     }
   );
 
-  const disposable2 = vscode.commands.registerCommand(
+  const openInGitHubRepo = vscode.commands.registerCommand(
     "openingh.openInGitHubRepo",
     () => {
       let editor = vscode.window.activeTextEditor;
@@ -146,7 +147,7 @@ export function activate(context: vscode.ExtensionContext) {
     }
   );
 
-  context.subscriptions.push(disposable, disposable2, disposable3);
+  context.subscriptions.push(openInGitHubFile, openInGitHubRepo, openInGitHubLines);
 }
 
 // This method is called when your extension is deactivated

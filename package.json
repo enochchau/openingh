@@ -9,6 +9,21 @@
   "categories": [
     "Other"
   ],
+  "license": "MIT",
+  "tags": [
+    "open",
+    "in",
+    "github",
+    "browser",
+    "web",
+    "headless"
+  ],
+  "homepage": "https://github.com/enochchau/openingh",
+  "bugs": "https://github.com/enochchau/openingh/issues",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/enochchau/openingh.git"
+  },
   "activationEvents": [],
   "main": "./dist/extension.js",
   "contributes": {
@@ -39,7 +54,9 @@
     "watch-tests": "tsc -p . -w --outDir out",
     "pretest": "pnpm run compile-tests && pnpm run compile && pnpm run lint",
     "lint": "eslint src",
-    "test": "vscode-test"
+    "test": "vscode-test",
+    "vsce:package": "pnpm vsce package --no-dependencies",
+    "vsce:publish": "pnpm vsce publish --no-dependencies"
   },
   "devDependencies": {
     "@types/vscode": "^1.99.0",

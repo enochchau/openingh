@@ -4,8 +4,9 @@ Opens the current file or project page in GitHub.
 
 ## Install
 
-```
-pnpm vsce package
+```sh
+pnpm run vsce:package
+code --install-extension openingh-[VERSION].vsix
 ```
 
 ## Features

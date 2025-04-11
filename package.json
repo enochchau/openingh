@@ -1,4 +1,5 @@
 {
+  "publisher": "enochchau",
   "name": "openingh",
   "displayName": "openingh",
   "description": "Opens the current file or project page in GitHub.",
